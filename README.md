@@ -1,91 +1,59 @@
-# LMU Race Engineer
+# Paddock — A Enciclopédia da Fórmula 1
 
-Painel de estratégia colaborativo em tempo real para corridas de endurance no Le Mans Ultimate. Crie uma "sala de corrida", compartilhe o código de convite com a equipe, e todo mundo edita combustível, pneus, danos, pit stops e a escala de pilotos ao vivo — sem F5.
+A história da Fórmula 1 desde 1950: temporadas, corridas, pilotos, equipes, carros, circuitos, engenharia e regulamentos. Em português (padrão) e inglês (`/en`).
 
-**App em produção**: https://lemans-ultimate.vercel.app
+## Rodar
 
-## Funcionalidades
+Requer Node.js 20+.
 
-- **Salas de corrida**: crie uma sala nova ou entre em uma existente com um código de convite — sem login, sem cadastro.
-- **Dashboard geral**: status da corrida, estatísticas editáveis por qualquer participante e piloto atual em destaque.
-- **Escala de pilotos**: planilha colaborativa em tempo real (reordenar stints com setas, editar direto na tabela).
-- **Combustível, pneus e danos**: controle dedicado pra cada um, todos sincronizados ao vivo entre os participantes.
-- **Planejador de pit stop**: monta o plano (combustível + pneu + troca de piloto + reparos), com opção de cancelar um pit stop iniciado por engano.
-- **Timeline visual** da corrida a partir dos stints escalados.
-- **Alertas**: toasts derivados do estado da sala (ex. cobertura de horário), sem persistência.
-- **Telemetria local (opcional, best-effort)**: conecta em `http://localhost:6397` no PC que roda o jogo e alimenta a sala automaticamente — nunca bloqueia o uso manual se falhar.
-- **Exportação**: JSON completo da sala + CSV da escala final, gerados a partir do estado persistido no servidor.
-- Tudo em tempo real via Socket.IO — qualquer participante edita, todo mundo vê a atualização na hora, sem F5. Não há hierarquia de permissões: todo mundo pode editar tudo (decisão explícita de escopo da v1).
+```bash
+npm install
+npm run dev     # http://localhost:3000
+npm run build   # build de produção
+npm run start   # serve o build
+```
 
-## Paddock — Enciclopédia de Fórmula 1 (web)
+## Seções
 
-O `web` agora também hospeda **Paddock**, uma enciclopédia editorial de F1 com design inspirado na Apple, na raiz do site (`/`). O RACEOPS continua disponível em `/race-engineer` e `/room/[code]`.
+| Rota | Conteúdo |
+| --- | --- |
+| `/history`, `/history/[era]` | A F1 década a década, com as corridas que marcaram cada uma |
+| `/seasons`, `/seasons/[ano]`, `/seasons/[ano]/[corrida]` | Todas as temporadas de 1950 a 2026: calendário, resultados e classificação |
+| `/drivers`, `/teams`, `/cars`, `/circuits` | Pilotos, equipes (com todos os carros), carros e circuitos |
+| `/engineering`, `/regulations` | Engenharia e regulamentos, com arquivo da FIA, comparação e busca |
+| `/race-weekend`, `/categories`, `/learn` | Como funciona um fim de semana de corrida, categorias e guias |
+| `/search`, `/about` | Busca global e créditos |
 
-- Rotas: `/history`, `/seasons` (1950–2026), `/drivers`, `/teams`, `/cars`, `/circuits`, `/technology`, `/race-weekend`, `/categories`, `/learn`, `/search`, `/about` — cada uma com páginas de detalhe.
-- Conteúdo editorial em `web/lib/f1/*`; componentes em `web/components/site/*`; design system em `web/app/(site)/site.css`.
-- **Fase 1** (atual): design, arquitetura de informação e conteúdo editorial. Calendários, resultados, estatísticas e especificações detalhadas ficam para a **Fase 2** (dados verificados) e aparecem como placeholders identificados.
-- Fotos: registradas em `web/lib/f1/media.ts` com fonte, autor e licença. Sem imagem verificada, a página mostra uma placa tipográfica — nunca uma foto substituta.
+URLs sem prefixo são em português. A versão em inglês fica em `/en/...`.
+
+## Onde ficam as coisas
+
+```
+app/(site)/[lang]/   páginas (uma árvore por idioma) e site.css (design system)
+app/api/search/      endpoint da busca
+components/site/     componentes da interface
+lib/f1/              conteúdo editorial e camada de dados
+lib/i18n/            idiomas e textos da interface
+data/f1/             dados das temporadas (gerados a partir da F1DB)
+data/regulations/    arquivo de regulamentos da FIA
+public/media/        fotos, logos e traçados
+scripts/             pipelines de dados (F1DB, FIA, mídia)
+proxy.ts             roteamento de idioma
+```
+
+## Dados e fotos
+
+- **Resultados:** a fonte é a [F1DB](https://github.com/f1db/f1db) (CC BY 4.0). Os vencedores e campeões são conferidos com a API Jolpica. O JSON gerado fica no repositório, então o build não precisa de internet. Para atualizar, rode `F1DB_DIR=/caminho/da/f1db node scripts/f1db/build.mjs`.
+- **Fotos:** registradas em `lib/f1/media.ts` com fonte, autor e licença. Quando não há foto verificada, a página mostra uma placa tipográfica no lugar, nunca uma foto substituta.
 
 ## Stack
 
-- **shared**: TypeScript — tipos e lógica compartilhada entre `server` e `web` (`@lmu/shared`).
-- **server**: Express + Socket.IO + Prisma (build de produção via esbuild).
-- **web**: Next.js 16 (App Router) + React 19 + Zustand + Tailwind CSS 4.
-- **Banco**: Postgres (único suportado — dev e produção).
+Next.js 16 (App Router) + React 19 + TypeScript + Tailwind CSS 4.
 
-## Estrutura
+## Publicar (Vercel)
 
-```
-shared/   tipos TypeScript + lógica compartilhada entre server e web (@lmu/shared)
-server/   Express + Socket.IO + Prisma (tempo real e persistência)
-web/      Next.js (App Router) — frontend
-```
+Importe o repositório na Vercel. Ela detecta o Next.js sozinha e não precisa de variável de ambiente.
 
-## Opção 1 — Tudo via Docker (mais simples)
+## Origem
 
-```bash
-docker compose up --build
-```
-
-Sobe Postgres + server + web já conectados entre si. `web` fica em [http://localhost:3000](http://localhost:3000), `server` em `http://localhost:4001`. As migrations do Prisma rodam sozinhas ao subir o container do `server` (não precisa fazer nada manual). Pra popular a sala de teste `DEV001`:
-
-```bash
-docker compose exec -w /app/server server npx tsx prisma/seed.ts
-```
-
-Parar tudo: `docker compose down` (ou `docker compose down -v` pra apagar os dados do Postgres também).
-
-## Opção 2 — App local + Postgres no Docker (mais rápido pra desenvolver)
-
-Só o banco containerizado; `server`/`web` rodam local com hot-reload de verdade.
-
-```bash
-docker compose up -d postgres    # só o banco, publicado em localhost:5433
-
-npm install                      # na raiz — instala as 3 workspaces de uma vez
-cp server/.env.example server/.env   # já aponta pro Postgres do compose
-
-npx prisma migrate dev --schema=server/prisma/schema.prisma   # primeira vez só
-npm run db:seed --workspace=server                             # opcional: cria a sala DEV001
-
-npm run dev:server               # http://localhost:4001
-npm run dev:web                  # em outro terminal — http://localhost:3000
-```
-
-Variáveis de ambiente (ver `server/.env.example` e `web/.env.example`):
-- `server`: `PORT` (default `4001`), `WEB_ORIGIN` (default `http://localhost:3000`), `DATABASE_URL`.
-- `web`: `NEXT_PUBLIC_SERVER_URL` (default `http://localhost:4001`).
-
-## Scripts úteis (server)
-
-```bash
-npm run typecheck --workspace=server   # tsc --noEmit
-npm run build --workspace=server       # bundle de produção (esbuild) em server/dist/index.js
-npm run db:studio --workspace=server   # Prisma Studio (navegar o banco visualmente)
-```
-
-## Deploy
-
-Em produção: `web` na Vercel, `server` no Render, banco na Neon — todos free tier. Guia completo (passo a passo + pegadinhas encontradas) em [`DEPLOY.md`](./DEPLOY.md).
-
-`server/Dockerfile` e `web/Dockerfile` buildam direto em qualquer plataforma que rode containers (Render, Railway, etc.) — `web` também pode ir pra Vercel via build nativo do Next.js. Banco: Postgres gerenciado (Neon, Supabase, ou o Postgres da própria plataforma de hosting).
+O projeto nasceu dentro do repositório do LMU Race Engineer (telemetria do Le Mans Ultimate). Este branch tem só o Paddock: o app de Le Mans, o servidor e o código compartilhado foram removidos.

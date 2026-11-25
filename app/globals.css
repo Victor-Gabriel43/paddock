@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+/* Estilos globais mínimos. O visual do Paddock fica em app/(site)/[lang]/site.css. */
+
+:root {
+  --bg: #0a0a0b; /* quase preto — fundo da aplicação */
+  --surface: #121316; /* grafite — painéis */
+  --surface-raised: #191a1e; /* cinza escuro — linhas em hover, campos */
+  --border-c: #26272c; /* divisores finos */
+  --border-strong: #3a3c44; /* borda de destaque / foco de célula */
+  --text: #f4f4f5; /* off-white — texto principal */
+  --text-muted: #8b8d95; /* labels, timestamps */
+  --text-dim: #5b5d66; /* texto terciário, placeholders */
+
+  --brand: #2e9bff; /* azul — ações primárias, foco, "ao vivo" */
+  --brand-fg: #05070a;
+
+  --status-ok: #30d158; /* verde — só uso semântico (tudo certo) */
+  --status-warning: #ff9f0a; /* âmbar — atenção */
+  --status-critical: #ff4032; /* vermelho — crítico */
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-border: var(--border-c);
+  --color-border-strong: var(--border-strong);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-text-dim: var(--text-dim);
+  --color-brand: var(--brand);
+  --color-brand-fg: var(--brand-fg);
+  --color-status-ok: var(--status-ok);
+  --color-status-warning: var(--status-warning);
+  --color-status-critical: var(--status-critical);
+  --font-sans: var(--font-plex-sans);
+  --font-mono: var(--font-plex-mono);
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+}
+
+
+/* Números que mudam com frequência (tempos, combustível, gaps) não devem
+   "pular" de largura ao trocar de dígito. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Label técnico do pit wall — pequeno, caixa alta, espaçado. */
+.eyebrow {
+  font-family: var(--font-plex-mono), ui-monospace, "SF Mono", monospace;
+  font-size: 0.6875rem;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}

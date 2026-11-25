@@ -75,3 +75,8 @@ docker-data/
 *.tmp
 *.temp
 .env.vault
+
+# Next.js
+next-env.d.ts
+*.pem
+__pycache__/
